@@ -1,0 +1,14 @@
+[package]
+name = "bit-codec"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[features]
+derive = ["bit-codec-derive"]
+
+[dependencies]
+bit-codec-derive = { path = "../bit-codec-derive", optional = true }
+
+[dev-dependencies]
+bit-codec = { path = ".", features = ["derive"] }
