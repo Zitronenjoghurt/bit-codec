@@ -7,12 +7,23 @@ name = "bit-codec"
 version = "0.1.0"
 dependencies = [
  "bit-codec",
- "bit-codec-derive",
+ "bit-codec-derive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "bit-codec-derive"
 version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "bit-codec-derive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c92ae15174202209b255dfaeafb73a31dbdeb4c4869e469a4bd84008c29e3d31"
 dependencies = [
  "proc-macro2",
  "quote",

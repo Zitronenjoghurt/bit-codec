@@ -1,7 +1,9 @@
 [package]
 name = "bit-codec-derive"
+description = "Derive macros for the bit-codec crate."
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [lib]
 proc-macro = true
