@@ -1,7 +1,7 @@
 [package]
 name = "bit-codec"
 description = "A Rust crate for easy bitwise encoding (serializing) and decoding (deserializing)."
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/Zitronenjoghurt/bit-codec"
