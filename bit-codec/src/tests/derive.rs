@@ -1,4 +1,4 @@
-use crate::{BitDecode, BitEncode, BitReader, BitWriter};
+use bit_codec::{BitDecode, BitEncode, BitReader, BitWriter};
 
 #[derive(Debug, PartialEq, BitEncode, BitDecode)]
 struct Pair(u16, u16);

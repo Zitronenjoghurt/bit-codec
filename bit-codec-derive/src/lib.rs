@@ -116,7 +116,7 @@ fn encode_field(
     if let Some(n) = field_bit_count(attrs)? {
         Ok(quote! { w.write_bits(#accessor, #n)?; })
     } else {
-        Ok(quote! { <#ty as BitEncode>::encode(&#accessor, w)?; })
+        Ok(quote! { <#ty as bit_codec::BitEncode>::encode(&#accessor, w)?; })
     }
 }
 
@@ -124,7 +124,7 @@ fn decode_field(ty: &Type, attrs: &[Attribute]) -> syn::Result<TokenStream2> {
     if let Some(n) = field_bit_count(attrs)? {
         Ok(quote! { r.read_bits(#n)? })
     } else {
-        Ok(quote! { <#ty as BitDecode>::decode(r)? })
+        Ok(quote! { <#ty as bit_codec::BitDecode>::decode(r)? })
     }
 }
 
@@ -141,8 +141,8 @@ fn expand_encode(input: &DeriveInput) -> syn::Result<TokenStream2> {
     };
 
     Ok(quote! {
-        impl #impl_generics BitEncode for #name #ty_generics #where_clause {
-            fn encode<W__: std::io::Write>(&self, w: &mut BitWriter<W__>) -> std::io::Result<()> {
+        impl #impl_generics bit_codec::BitEncode for #name #ty_generics #where_clause {
+            fn encode<W__: std::io::Write>(&self, w: &mut bit_codec::BitWriter<W__>) -> std::io::Result<()> {
                 #body
                 Ok(())
             }
@@ -269,8 +269,8 @@ fn expand_decode(input: &DeriveInput) -> syn::Result<TokenStream2> {
     };
 
     Ok(quote! {
-        impl #impl_generics BitDecode for #name #ty_generics #where_clause {
-            fn decode<R__: std::io::Read>(r: &mut BitReader<R__>) -> std::io::Result<Self> {
+        impl #impl_generics bit_codec::BitDecode for #name #ty_generics #where_clause {
+            fn decode<R__: std::io::Read>(r: &mut bit_codec::BitReader<R__>) -> std::io::Result<Self> {
                 #body
             }
         }
