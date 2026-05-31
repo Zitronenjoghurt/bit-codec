@@ -1,8 +1,8 @@
 use crate::var_len::VarLen;
-use std::io::{self, Read, Write};
-
 pub use dec::{BitDecode, BitReader};
 pub use enc::{BitEncode, BitWriter};
+use std::io::{self, Read, Write};
+use std::mem::MaybeUninit;
 
 #[cfg(feature = "derive")]
 pub use bit_codec_derive::{BitDecode, BitEncode};
@@ -57,6 +57,42 @@ impl<T: BitDecode> BitDecode for Vec<T> {
     fn decode<R: Read>(r: &mut BitReader<R>) -> io::Result<Self> {
         let len = VarLen::decode(r)?.0 as usize;
         (0..len).map(|_| T::decode(r)).collect()
+    }
+}
+
+impl<T: BitEncode, const N: usize> BitEncode for [T; N] {
+    fn encode<W: Write>(&self, w: &mut BitWriter<W>) -> io::Result<()> {
+        for item in self {
+            item.encode(w)?;
+        }
+        Ok(())
+    }
+}
+
+impl<T: BitDecode, const N: usize> BitDecode for [T; N] {
+    fn decode<R: Read>(r: &mut BitReader<R>) -> io::Result<Self> {
+        // SAFETY: we immediately overwrite the garbage values and dont access them as T before it completes successfully
+        let mut arr: [MaybeUninit<T>; N] = unsafe { MaybeUninit::uninit().assume_init() };
+
+        for (i, slot) in arr.iter_mut().enumerate() {
+            match T::decode(r) {
+                Ok(val) => {
+                    slot.write(val);
+                }
+                Err(e) => {
+                    // SAFETY: we only call drop on slots we wrote a T into to prevent leaking memory
+                    for slot in &mut arr[..i] {
+                        unsafe {
+                            slot.assume_init_drop();
+                        }
+                    }
+                    return Err(e);
+                }
+            }
+        }
+
+        // SAFETY: the loop finished without error, so every slot got a proper T
+        Ok(unsafe { arr.map(|slot| slot.assume_init()) })
     }
 }
 

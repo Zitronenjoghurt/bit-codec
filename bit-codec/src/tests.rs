@@ -301,3 +301,34 @@ fn write_full_bytes_unaligned_then_read_back() {
     assert_eq!(buf, [0xDE, 0xAD]);
     assert_eq!(r.read_bits::<u8>(4).unwrap(), 0b1010);
 }
+
+#[test]
+fn array_roundtrip() {
+    assert_eq!(roundtrip(&[1u8, 2, 3, 4, 5]), [1u8, 2, 3, 4, 5]);
+    assert_eq!(roundtrip(&[0xDEADu16, 0xBEEF]), [0xDEADu16, 0xBEEF]);
+    assert_eq!(roundtrip(&[true, false, true]), [true, false, true]);
+}
+
+#[test]
+fn array_empty() {
+    assert_eq!(roundtrip(&([] as [u32; 0])), [] as [u32; 0]);
+}
+
+#[test]
+fn array_nested_in_vec() {
+    let v: Vec<[u8; 3]> = vec![[1, 2, 3], [4, 5, 6]];
+    assert_eq!(roundtrip(&v), v);
+}
+
+#[test]
+fn array_no_length_prefix() {
+    let arr = [1u8, 2u8];
+    let vec = vec![1u8, 2u8];
+    let arr_bytes = encode_to_vec(&arr);
+    let vec_bytes = encode_to_vec(&vec);
+    assert!(
+        arr_bytes.len() < vec_bytes.len(),
+        "array should be smaller than vec (no length prefix)"
+    );
+    assert_eq!(arr_bytes, [1, 2]);
+}
