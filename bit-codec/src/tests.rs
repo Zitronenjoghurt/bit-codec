@@ -99,6 +99,8 @@ fn round_trip_mixed_bits() {
         w.write(&true).unwrap();
         w.write(&0xFFu8).unwrap();
         w.write(&1024u16).unwrap();
+        w.write(&4782174usize).unwrap();
+        w.write(&-447742isize).unwrap();
         w.flush().unwrap();
     }
 
@@ -107,6 +109,8 @@ fn round_trip_mixed_bits() {
     assert!(r.read::<bool>().unwrap());
     assert_eq!(r.read::<u8>().unwrap(), 0xFF);
     assert_eq!(r.read::<u16>().unwrap(), 1024);
+    assert_eq!(r.read::<usize>().unwrap(), 4782174);
+    assert_eq!(r.read::<isize>().unwrap(), -447742);
 }
 
 #[test]
@@ -343,8 +347,6 @@ fn unit_zero_bytes() {
     assert!(encode_to_vec(&()).is_empty());
 }
 
-// === Tuples ===
-
 #[test]
 fn tuple_1() {
     assert_eq!(roundtrip(&(42u8,)), (42u8,));
@@ -385,8 +387,6 @@ fn tuple_nested() {
     assert_eq!(roundtrip(&val), val);
 }
 
-// === Box ===
-
 #[test]
 fn box_roundtrip() {
     assert_eq!(roundtrip(&Box::new(42u32)), Box::new(42u32));
@@ -412,8 +412,6 @@ fn box_nested() {
     );
 }
 
-// === Cow ===
-
 #[test]
 fn cow_str_borrowed() {
     let val: Cow<str> = Cow::Borrowed("borrowed");
@@ -432,8 +430,6 @@ fn cow_slice() {
     assert_eq!(&*roundtrip(&val), &[10, 20, 30]);
 }
 
-// === Rc / Arc ===
-
 #[test]
 fn rc_roundtrip() {
     let val = Rc::new(7u8);
@@ -445,8 +441,6 @@ fn arc_roundtrip() {
     let val = Arc::new("shared".to_string());
     assert_eq!(*roundtrip(&val), "shared");
 }
-
-// === Result ===
 
 #[test]
 fn result_ok() {
@@ -469,8 +463,6 @@ fn result_discriminant_is_one_bit() {
     assert_eq!(encode_to_vec(&err).len(), 1);
 }
 
-// === PhantomData ===
-
 #[test]
 fn phantom_roundtrip() {
     let p: PhantomData<Vec<String>> = PhantomData;
@@ -482,15 +474,11 @@ fn phantom_zero_bytes() {
     assert!(encode_to_vec(&PhantomData::<u64>).is_empty());
 }
 
-// === Wrapping ===
-
 #[test]
 fn wrapping_roundtrip() {
     assert_eq!(roundtrip(&Wrapping(255u8)), Wrapping(255u8));
     assert_eq!(roundtrip(&Wrapping(i64::MIN)), Wrapping(i64::MIN));
 }
-
-// === NonZero ===
 
 #[test]
 fn nonzero_roundtrip() {
@@ -520,8 +508,6 @@ fn nonzero_decode_zero_fails() {
     assert!(decode_from_bytes::<NonZeroU64>(&bytes).is_err());
 }
 
-// === char ===
-
 #[test]
 fn char_roundtrip() {
     assert_eq!(roundtrip(&'A'), 'A');
@@ -541,8 +527,6 @@ fn char_decode_out_of_range_fails() {
     let bytes = encode_to_vec(&0x110000u32);
     assert!(decode_from_bytes::<char>(&bytes).is_err());
 }
-
-// === Duration ===
 
 #[test]
 fn duration_roundtrip() {
@@ -567,8 +551,6 @@ fn duration_decode_bad_nanos_fails() {
     assert!(decode_from_bytes::<Duration>(&w.into_inner()).is_err());
 }
 
-// === Ipv4Addr ===
-
 #[test]
 fn ipv4_roundtrip() {
     assert_eq!(roundtrip(&Ipv4Addr::LOCALHOST), Ipv4Addr::LOCALHOST);
@@ -584,8 +566,6 @@ fn ipv4_is_4_bytes() {
     assert_eq!(encode_to_vec(&Ipv4Addr::LOCALHOST).len(), 4);
 }
 
-// === Ipv6Addr ===
-
 #[test]
 fn ipv6_roundtrip() {
     assert_eq!(roundtrip(&Ipv6Addr::LOCALHOST), Ipv6Addr::LOCALHOST);
@@ -597,8 +577,6 @@ fn ipv6_roundtrip() {
 fn ipv6_is_16_bytes() {
     assert_eq!(encode_to_vec(&Ipv6Addr::LOCALHOST).len(), 16);
 }
-
-// === SocketAddr ===
 
 #[test]
 fn socket_addr_v4_roundtrip() {
@@ -627,8 +605,6 @@ fn socket_addr_v4_smaller_than_v6() {
     assert!(encode_to_vec(&v4).len() < encode_to_vec(&v6).len());
 }
 
-// === HashMap ===
-
 #[test]
 fn hashmap_roundtrip() {
     let mut m = HashMap::new();
@@ -642,8 +618,6 @@ fn hashmap_empty() {
     let m: HashMap<u8, u8> = HashMap::new();
     assert_eq!(roundtrip(&m), m);
 }
-
-// === BTreeMap ===
 
 #[test]
 fn btreemap_roundtrip() {
@@ -660,8 +634,6 @@ fn btreemap_empty() {
     assert_eq!(roundtrip(&m), m);
 }
 
-// === HashSet ===
-
 #[test]
 fn hashset_roundtrip() {
     let s: HashSet<u32> = [1, 2, 3, 100].into_iter().collect();
@@ -674,15 +646,11 @@ fn hashset_empty() {
     assert_eq!(roundtrip(&s), s);
 }
 
-// === BTreeSet ===
-
 #[test]
 fn btreeset_roundtrip() {
     let s: BTreeSet<i16> = [-10, 0, 10, 20].into_iter().collect();
     assert_eq!(roundtrip(&s), s);
 }
-
-// === VecDeque ===
 
 #[test]
 fn vecdeque_roundtrip() {
@@ -707,8 +675,6 @@ fn vecdeque_preserves_order() {
     assert_eq!(decoded.iter().copied().collect::<Vec<_>>(), vec![0, 1, 2]);
 }
 
-// === LinkedList ===
-
 #[test]
 fn linked_list_roundtrip() {
     let l: LinkedList<String> = ["a", "b", "c"].iter().map(|s| s.to_string()).collect();
@@ -721,8 +687,6 @@ fn linked_list_empty() {
     assert_eq!(roundtrip(&l), l);
 }
 
-// === Range ===
-
 #[test]
 fn range_roundtrip() {
     assert_eq!(roundtrip(&(10u32..20u32)), 10..20);
@@ -734,8 +698,6 @@ fn range_inclusive_roundtrip() {
     assert_eq!(roundtrip(&(1u16..=100u16)), 1..=100);
     assert_eq!(roundtrip(&(0i32..=0i32)), 0..=0);
 }
-
-// === Composites / integration ===
 
 #[test]
 fn option_box_string() {

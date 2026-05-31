@@ -22,11 +22,11 @@ pub use bit_codec_derive::{BitDecode, BitEncode};
 
 pub mod dec;
 pub mod enc;
-mod primitive;
-mod seq;
+pub mod primitive;
+pub mod seq;
 #[cfg(test)]
 mod tests;
-mod var_len;
+pub mod var_len;
 
 macro_rules! impl_bit_codec {
     ($($ty:ty),*) => {
@@ -49,6 +49,46 @@ macro_rules! impl_bit_codec {
     };
 }
 impl_bit_codec!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, f32, f64);
+
+impl BitEncode for usize {
+    #[inline]
+    fn encode<W: Write>(&self, w: &mut BitWriter<W>) -> io::Result<()> {
+        (*self as u64).encode(w)
+    }
+}
+
+impl BitDecode for usize {
+    #[inline]
+    fn decode<R: Read>(r: &mut BitReader<R>) -> io::Result<Self> {
+        let val = u64::decode(r)?;
+        usize::try_from(val).map_err(|_| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "usize overflow on this platform",
+            )
+        })
+    }
+}
+
+impl BitEncode for isize {
+    #[inline]
+    fn encode<W: Write>(&self, w: &mut BitWriter<W>) -> io::Result<()> {
+        (*self as i64).encode(w)
+    }
+}
+
+impl BitDecode for isize {
+    #[inline]
+    fn decode<R: Read>(r: &mut BitReader<R>) -> io::Result<Self> {
+        let val = i64::decode(r)?;
+        isize::try_from(val).map_err(|_| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "isize overflow on this platform",
+            )
+        })
+    }
+}
 
 impl<T: BitEncode> BitEncode for [T] {
     fn encode<W: Write>(&self, w: &mut BitWriter<W>) -> io::Result<()> {

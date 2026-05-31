@@ -4,6 +4,8 @@ description = "A Rust crate for easy bitwise encoding (serializing) and decoding
 version = "0.4.0"
 edition = "2024"
 license = "MIT"
+repository = "https://github.com/Zitronenjoghurt/bit-codec"
+readme = "../README.md"
 
 [features]
 derive = ["bit-codec-derive"]
